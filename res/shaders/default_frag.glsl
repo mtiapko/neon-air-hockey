@@ -1,24 +1,30 @@
-#version 330 core
+#version 130
 
-#define STEP 0.02
-#define SIZE 0.001
-#define CUR_SIZE 0.1
-#define PUCK_SIZE 0.035
+uniform float time;
+uniform float player_bright;
+uniform float bot_bright;
 
-//const vec2 resolution = vec2(800, 600);
-uniform vec2 resolution;
 uniform vec2 view;
-uniform vec2 offset;
 uniform vec2 player_pos;
 uniform vec2 bot_pos;
 uniform vec2 puck_pos;
-
-const vec2 mouse = vec2(0.0);
 
 const float pi = 3.1415926;
 const float inf = 1e+5;
 const float eps = 1e-5;
 const float bright = 0.01;
+
+float rand(float n)
+{
+	return fract(sin(n) * 43758.5453123);
+}
+
+float noise1(float p)
+{
+	float fl = floor(p);
+	float fc = fract(p);
+	return mix(rand(fl), rand(fl + 1.0), fc);
+}
 
 float arc_dist(vec2 uv, vec2 pos, float r, float angle, float start)
 {
@@ -40,7 +46,7 @@ float arc_dist(vec2 uv, vec2 pos, float r, float angle, float start)
 float circle_dist(vec2 uv, vec2 pos, float r)
 {
 	uv -= pos;
-	return pow(smoothstep(0.001, 1.5, abs(length(uv) - r)), 0.45);
+	return pow(smoothstep(0.0, 1.5, abs(length(uv) - r)), 0.45);
 }
 
 float line_dist(vec2 uv, vec2 p1, vec2 p2)
@@ -50,40 +56,29 @@ float line_dist(vec2 uv, vec2 p1, vec2 p2)
 	return distance(p1 + line * clamp(frac, 0.0, 1.0), uv);
 }
 
+float lightning_dist(vec2 uv, vec2 p1, vec2 p2)
+{
+	vec2 line = p2 - p1;
+	float frac = dot(uv - p1, line) / dot(line, line);
+	return distance(p1 + line * clamp(frac, 0.0, 1.0), uv + vec2(
+		noise1(uv.y * 2.0 * time * 5.0) * 0.1 -
+		noise1(uv.y * 3.0 + time * 10.0) * 0.1 +
+		noise1(sin(uv.y / time) * 8.0) * 0.1 +
+		noise1(uv.x * 8.0) * 0.3, 0) * 0.05);
+}
+
 void main() {
-	//float ratio = 1.0;//view.x / view.y;
-	//vec2 pos = ((gl_FragCoord.xy - 0.5 * offset * view) / resolution.xy);
-	//pos.x *= ratio;
-
-	//vec2 cur = player_pos;
-	//cur.x *= ratio;
-	//cur.x = clamp(cur.x, CUR_SIZE, ratio - CUR_SIZE);
-	//cur.y = clamp(cur.y, CUR_SIZE, 1.0 - CUR_SIZE);
-
-	/*vec3 color = vec3(0.4, 0.4, 0.45) * vec3(smoothstep(SIZE, SIZE + 0.002,
-		distance(vec2(mod(pos.x, STEP), mod(pos.y, STEP)), vec2(STEP / 2.0))));
-	if (step(distance(cur, pos), CUR_SIZE) != 0.0)
-		color = vec3(0.1, 0.25, 0.7);*/
-
-	//  puck
-	/*vec2 puck = puck_pos;
-	puck.x *= ratio;
-	float puck_k = smoothstep(PUCK_SIZE + 0.002, PUCK_SIZE, distance(puck, pos));
-	color = puck_k * vec3(0.65, 0.125, 0.165) + (1.0 - puck_k) * color;*/
-
-	vec2 uv;// = gl_FragCoord.xy / view;
-	uv = (gl_FragCoord.xy - vec2(0.5) * view) / min(view.x, view.y) + vec2(0.5);
-	//uv.x *= ratio;
+	const vec2 off = vec2(0.05, 0.15);
+	const vec2 size = vec2(0.9, 0.7);
+	vec2 uv = (gl_FragCoord.xy - vec2(0.5) * view) / min(view.x, view.y) + vec2(0.5);
 
 	vec3 color;
 	float dist;
 
-	vec2 off = vec2(0.05, 0.15);//offset * 0.5;
-	vec2 size = vec2(0.9, 0.7);//resolution / view;
-	//off.x *= ratio;
-	//size.x *= ratio;
+	float custom_left_bright = bright * (1.0 + 0.35 * noise1(time * 10.0));
+	float custom_right_bright = bright * (1.0 - 0.55 * noise1(time * 22.0));
+	float gate_bright = bright * (1.0 - 0.2 * noise1(time * 32.0));
 
-	// table
 	// player side
 	vec2 table_size = vec2(size.x - 0.055 * 2.0, size.y - 0.055 * 2.0);
 	vec2 table_top_left = vec2(off.x + 0.055, 1.0 - off.y - 0.055);
@@ -98,10 +93,10 @@ void main() {
 	color += vec3(0.75, 0.075, 0.05) * bright / (dist + eps);
 
 	dist = line_dist(uv, table_bot_left + vec2(0.025, -0.055), table_bot_left + vec2(size.x * 0.5, 0) + vec2(-0.055 * 2.0, -0.055));
-	color += vec3(0.75, 0.075, 0.05) * bright / (dist + eps);
+	color += vec3(0.75, 0.075, 0.05) * custom_left_bright / (dist + eps);
 
-	dist = line_dist(uv, table_top_left - vec2(0.055, 0.025), table_bot_left + vec2(-0.055, 0.025));
-	color += vec3(0.8, 0.65, 0.65) * bright / (dist + eps);
+	dist = lightning_dist(uv, table_top_left - vec2(0.055, 0.025), table_bot_left + vec2(-0.055, 0.025));
+	color += vec3(0.8, 0.65, 0.65) * player_bright * gate_bright / (dist + eps);
 
 	// bot side
 	vec2 table_top_right = table_top_left + vec2(table_size.x, 0);
@@ -113,21 +108,21 @@ void main() {
 	color += vec3(0.05, 0.1, 0.75) * bright / (dist + eps);
 
 	dist = line_dist(uv, table_top_right + vec2(-0.025, 0.055), table_top_right - vec2(size.x * 0.5, 0) + vec2(0.055 * 2.0, 0.055));
-	color += vec3(0.05, 0.1, 0.75) * bright / (dist + eps);
+	color += vec3(0.05, 0.1, 0.75) * custom_right_bright / (dist + eps);
 
 	dist = line_dist(uv, table_bot_right - vec2(0.025, 0.055), table_bot_right - vec2(size.x * 0.5, 0) + vec2(0.055 * 2.0, -0.055));
 	color += vec3(0.05, 0.1, 0.75) * bright / (dist + eps);
 
-	dist = line_dist(uv, table_top_right + vec2(0.055, -0.025), table_bot_right + vec2(0.055, 0.025));
-	color += vec3(0.65, 0.65, 0.85) * bright / (dist + eps);
+	dist = lightning_dist(uv, table_top_right + vec2(0.055, -0.025), table_bot_right + vec2(0.055, 0.025));
+	color += vec3(0.65, 0.65, 0.85) * bot_bright * gate_bright / (dist + eps);
 
 	// player
-	dist = circle_dist(uv, player_pos, 0.055);
-	color += vec3(0.75, 0.15, 0.25) * bright / (dist + eps);
+	dist = circle_dist(uv, player_pos, 0.055 * player_bright);
+	color += vec3(0.75, 0.15, 0.25) * player_bright * (1.0 / bot_bright) * bright / (dist + eps);
 
 	// bot
-	dist = circle_dist(uv, bot_pos, 0.055);
-	color += vec3(0.05, 0.1, 0.75) * bright / (dist + eps);
+	dist = circle_dist(uv, bot_pos, 0.055 * bot_bright);
+	color += vec3(0.05, 0.1, 0.75) * bot_bright * (1.0 / player_bright) * bright / (dist + eps);
 
 	// puck
 	dist = circle_dist(uv, puck_pos, 0.02);

@@ -2,40 +2,40 @@
 #define __GRAPHIC_RESOURCE_H__
 
 #include <cstddef>
-#include "GL/glew.h"
+#include <GL/glew.h>
 
 namespace hockey
 {
 
-class GraphicResource
+class ResourceIndex
 {
 private:
 	GLuint m_res;
 
 public:
-	GraphicResource() : m_res(0) {}
-	GraphicResource(GLuint res) : m_res(res) {}
+	ResourceIndex() : m_res(0) {}
+	ResourceIndex(GLuint res) : m_res(res) {}
 
 	operator GLuint() const { return m_res; }
 };
 
-inline bool operator!=(const GraphicResource& l, std::nullptr_t)
+inline bool operator!=(const ResourceIndex& l, std::nullptr_t)
 {
 	return (GLuint)l != 0;
 }
 
 template<typename D>
-class GraphicDeleter
+class ResourceDeleter
 {
 private:
 	D m_deleter;
 
 public:
-	using pointer = GraphicResource;
+	using pointer = ResourceIndex;
 
-	GraphicDeleter(D deleter) : m_deleter(deleter) {}
+	ResourceDeleter(D deleter) : m_deleter(deleter) {}
 
-	void operator()(const GraphicResource& res) const
+	void operator()(const ResourceIndex& res) const
 	{
 		m_deleter((GLuint)res);
 	}

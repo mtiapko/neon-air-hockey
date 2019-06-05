@@ -38,7 +38,7 @@ namespace hockey
 
 /* static */ auto Shader::compile(std::string_view path, GLenum type)
 {
-	std::unique_ptr<GLuint, GraphicDeleter<decltype(glDeleteShader)>> shader {
+	std::unique_ptr<GLuint, ResourceDeleter<decltype(glDeleteShader)>> shader {
 		0, glDeleteShader
 	};
 
@@ -68,7 +68,7 @@ namespace hockey
 
 /* static */ auto Shader::link(GLuint vert, GLuint frag)
 {
-	std::unique_ptr<GLuint, GraphicDeleter<decltype(glDeleteShader)>> prog {
+	std::unique_ptr<GLuint, ResourceDeleter<decltype(glDeleteShader)>> prog {
 		glCreateProgram(), glDeleteProgram
 	};
 

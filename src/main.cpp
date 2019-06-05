@@ -1,9 +1,8 @@
-#include "Shader.h"
 #include "Core.h"
 
 int main()
 {
-	hockey::Core core;
+	auto& core = hockey::Core::get();
 	if (auto ret = core.create(); !ret)
 		return ret;
 

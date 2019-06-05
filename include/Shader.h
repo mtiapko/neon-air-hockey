@@ -3,8 +3,9 @@
 
 #include <memory>
 #include <string>
+#include "ResourceIndex.h"
 #include "Status.h"
-#include "GraphicResource.h"
+#include "Vec2.h"
 
 namespace hockey
 {
@@ -12,7 +13,7 @@ namespace hockey
 class Shader
 {
 private:
-	std::unique_ptr<GLuint, GraphicDeleter<decltype(glDeleteProgram)>> m_prog { 0, glDeleteProgram };
+	std::unique_ptr<GLuint, ResourceDeleter<decltype(glDeleteProgram)>> m_prog { 0, glDeleteProgram };
 
 	static std::string load(std::string_view path);
 	static auto        compile(std::string_view path, GLenum type);
