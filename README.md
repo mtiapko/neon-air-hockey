@@ -1,6 +1,10 @@
 # Neon Air Hockey
+Just another air hockey game. But now it's **neon**.
+
 ## Gameplay
-![gameplay record](https://github.com/mtiapko/neon-air-hockey/blob/master/res/other/gameplay-record.gif "Gameplay record")
+<p align="center">
+	<img src="https://github.com/mtiapko/neon-air-hockey/blob/master/res/other/gameplay-record.gif?raw=true" alt="Gameplay record"/>
+</p>
 
 ## Install
 ### Arch Linux
