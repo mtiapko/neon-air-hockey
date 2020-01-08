@@ -102,7 +102,7 @@ void Core::handle_events()
 Status Core::run()
 {
 	auto curr_time = std::chrono::high_resolution_clock::now();
-	auto update_time = std::chrono::high_resolution_clock::duration(std::chrono::seconds(1)) / 120;
+	auto update_time = std::chrono::high_resolution_clock::duration(std::chrono::seconds(1)) / 60;
 	auto next_update = curr_time;
 	auto next_print = curr_time + std::chrono::seconds(1);
 

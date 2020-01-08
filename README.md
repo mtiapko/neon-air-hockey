@@ -1,4 +1,6 @@
 # Neon Air Hockey
+## Gameplay
+![gameplay record](https://github.com/mtiapko/neon-air-hockey/blob/master/res/other/gameplay-record.gif "Gameplay record")
 
 ## Install
 ### Arch Linux
